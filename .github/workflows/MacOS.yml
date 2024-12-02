@@ -31,29 +31,34 @@ jobs:
         run: |
           brew install tailscale
 
-      # 5. Verify Tailscale Installation
-      - name: Verify Tailscale Installation
+      # 5. Start Tailscale Daemon
+      - name: Start Tailscale Daemon
         run: |
-          if ! command -v tailscale &> /dev/null; then
-            echo "Tailscale installation failed!"
+          sudo tailscaled &
+
+      # 6. Verify Tailscale Daemon
+      - name: Verify Tailscale Daemon
+        run: |
+          if ! pgrep tailscaled > /dev/null; then
+            echo "Tailscale daemon failed to start!"
             exit 1
           fi
 
-      # 6. Authenticate Tailscale
+      # 7. Authenticate Tailscale
       - name: Authenticate Tailscale
         env:
           TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
         run: |
           sudo tailscale up --authkey=$TAILSCALE_AUTHKEY
 
-      # 7. Retrieve Tailscale IP
+      # 8. Retrieve Tailscale IP
       - name: Get Tailscale IP
         id: tailscale_ip
         run: |
           TAILSCALE_IP=$(tailscale ip -4)
           echo "TAILSCALE_IP=$TAILSCALE_IP" >> $GITHUB_ENV
 
-      # 8. Log Tailscale and Admin Information
+      # 9. Log Tailscale and Admin Information
       - name: Display Login Information
         run: |
           echo "========================================="
@@ -62,7 +67,7 @@ jobs:
           echo "Password: $password"
           echo "========================================="
 
-      # 9. Continuous Status Logging
+      # 10. Continuous Status Logging
       - name: Continuous Status Logging
         run: |
           echo "Starting continuous status logging..."
