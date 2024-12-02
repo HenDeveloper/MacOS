@@ -1,4 +1,4 @@
-name: macOS with Tailscale and Admin Access
+name: HenDeveloper MacOS
 
 on:
   workflow_dispatch:
@@ -11,32 +11,26 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1. Checkout repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2. Generate Random Admin Password
       - name: Generate Random Admin Password
         id: password
         run: echo "password=$(LC_CTYPE=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 4)" >> $GITHUB_ENV
 
-      # 3. Create Admin Account
       - name: Create Admin Account
         run: |
-          sudo sysadminctl -addUser HenCoders -password $password
-          sudo dscl . -append /Groups/admin GroupMembership HenCoders
+          sudo sysadminctl -addUser HenDeveloper -password $password
+          sudo dscl . -append /Groups/admin GroupMembership HenDeveloper
 
-      # 4. Install Tailscale
       - name: Install Tailscale
         run: |
           brew install tailscale
 
-      # 5. Start Tailscale Daemon
       - name: Start Tailscale Daemon
         run: |
           sudo tailscaled &
 
-      # 6. Verify Tailscale Daemon
       - name: Verify Tailscale Daemon
         run: |
           if ! pgrep tailscaled > /dev/null; then
@@ -44,35 +38,29 @@ jobs:
             exit 1
           fi
 
-      # 7. Authenticate Tailscale
       - name: Authenticate Tailscale
         env:
           TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
         run: |
           sudo tailscale up --authkey=$TAILSCALE_AUTHKEY
 
-      # 8. Retrieve Tailscale IP
       - name: Get Tailscale IP
         id: tailscale_ip
         run: |
           TAILSCALE_IP=$(tailscale ip -4)
           echo "TAILSCALE_IP=$TAILSCALE_IP" >> $GITHUB_ENV
 
-      # 9. Log Tailscale and Admin Information
       - name: Display Login Information
         run: |
           echo "========================================="
           echo "Tailscale IP: $TAILSCALE_IP"
-          echo "Username: HenCoders"
+          echo "Username: HenDeveloper"
           echo "Password: $password"
           echo "========================================="
 
-      # 10. Continuous Status Logging
       - name: Continuous Status Logging
         run: |
-          echo "Starting continuous status logging..."
-          for ((i=0; i<100*30*24*30; i++)); do
-            echo "$(date): Hen MacOS Status - MacOS Active" >> macos_status.log
+          while true; do
+            echo "$(date): Hen MacOS Status - MacOS Active"
             sleep 10
-          done &
-          echo "Continuous logging has been initiated!"
+          done
