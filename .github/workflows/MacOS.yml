@@ -1,4 +1,4 @@
-name: macOS By HenDeveloper
+name: macOS with Tailscale and Admin Access
 
 on:
   workflow_dispatch:
@@ -29,23 +29,31 @@ jobs:
       # 4. Install Tailscale
       - name: Install Tailscale
         run: |
-          curl -fsSL https://tailscale.com/install.sh | sh
+          brew install tailscale
 
-      # 5. Authenticate Tailscale
+      # 5. Verify Tailscale Installation
+      - name: Verify Tailscale Installation
+        run: |
+          if ! command -v tailscale &> /dev/null; then
+            echo "Tailscale installation failed!"
+            exit 1
+          fi
+
+      # 6. Authenticate Tailscale
       - name: Authenticate Tailscale
         env:
           TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
         run: |
           sudo tailscale up --authkey=$TAILSCALE_AUTHKEY
 
-      # 6. Retrieve Tailscale IP
+      # 7. Retrieve Tailscale IP
       - name: Get Tailscale IP
         id: tailscale_ip
         run: |
           TAILSCALE_IP=$(tailscale ip -4)
           echo "TAILSCALE_IP=$TAILSCALE_IP" >> $GITHUB_ENV
 
-      # 7. Log Tailscale and Admin Information
+      # 8. Log Tailscale and Admin Information
       - name: Display Login Information
         run: |
           echo "========================================="
@@ -54,7 +62,7 @@ jobs:
           echo "Password: $password"
           echo "========================================="
 
-      # 8. Continuous Status Logging
+      # 9. Continuous Status Logging
       - name: Continuous Status Logging
         run: |
           echo "Starting continuous status logging..."
